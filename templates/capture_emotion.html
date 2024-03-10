@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+<head>
+  <!-- Basic -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <!-- Mobile Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <!-- Site Metas -->
+  <link rel="icon" href="images/fevicon.png" type="image/gif" />
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+
+  <title>EmoApp</title>
+
+
+  <!-- bootstrap core css -->
+  <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}" />
+
+  <!-- fonts style -->
+  <link href="https://fonts.googleapis.com/css?family=Poppins:400,600,700&display=swap" rel="stylesheet" />
+
+  <!-- font awesome style -->
+  <link href="{% static 'css/font-awesome.min.css' %}" rel="stylesheet" />
+  <!-- Custom styles for this template -->
+  <link href="{% static 'css/style.css' %}" rel="stylesheet" />
+  <!-- responsive style -->
+  <link href="{% static 'css/responsive.css' %}" rel="stylesheet" />
+
+</head>
+
+<body>
+
+  <div class="hero_area">
+    <!-- header section strats -->
+    <header class="header_section long_section px-0">
+      <nav class="navbar navbar-expand-lg custom_nav-container ">
+        <a class="navbar-brand" href="index.html">
+          <span>
+            EmoApp
+          </span>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class=""> </span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <div class="d-flex mx-auto flex-column flex-lg-row align-items-center">
+            <ul class="navbar-nav  ">
+              <li class="nav-item active">
+                <a class="nav-link" href="{% url 'loadhtml' %}">Home <span class="sr-only">(current)</span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'about' %}"> About</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'capture' %}">Capture Emotion</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="contact.html">Contact Us</a>
+              </li>
+            </ul>
+          </div>
+          <div class="quote_btn-container">
+            <a href="">
+              <span>
+                Login
+              </span>
+              <i class="fa fa-user" aria-hidden="true"></i>
+            </a>
+            <form class="form-inline">
+              <button class="btn  my-2 my-sm-0 nav_search-btn" type="submit">
+                <i class="fa fa-search" aria-hidden="true"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <!-- end header section -->
+    <h1>Live Camera Feed</h1>
+    <video id="video" width="640" height="480" autoplay style="border:2px solid #ccc; margin-left:auto; margin-right:auto;"></video>
+    <button class="btn btn-success mt-3" id="captureButton">Capture</button>
+    <p id="statusMessage"></p>
+    <canvas id="canvas" width="200" height="200"></canvas>
+  </div>
+    <script>
+    /*
+    // Get the video and canvas elements
+      var video = document.getElementById('video');
+      var canvas = document.getElementById('canvas');
+
+// Get access to the webcam stream
+navigator.mediaDevices.getUserMedia({video: true})
+  .then(function(stream) {
+    // Display the stream in the video element
+    video.srcObject = stream;
+    video.play();
+  var context = canvas.getContext('2d');
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // Convert the canvas to a data URI
+  var data_uri = canvas.toDataURL('image/png');
+  // Set the <a> link's href attribute to the data URI
+  var link = document.getElementById('downloadLink');
+  link.href = data_uri;
+  // Set the download attribute to the file name
+  link.download = 'snapshot.png';
+  })
+  .catch(function(err) {
+    console.error(err);
+  });
+
+// Capture a video frame and save it as an image
+function take_snapshot(video) {
+  // Draw the video frame on the canvas
+  var context = canvas.getContext('2d');
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  // Convert the canvas to a data URI
+  var data_uri = canvas.toDataURL('image/png');
+  // Set the <a> link's href attribute to the data URI
+  var link = document.getElementById('downloadLink');
+  link.href = data_uri;
+  // Set the download attribute to the file name
+  link.download = 'snapshot.png';
+}
+    */
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const video = document.getElementById('video');
+            const captureButton = document.getElementById('captureButton');
+            const statusMessage = document.getElementById('statusMessage');
+
+            // Get user media
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then((stream) => {
+                    video.srcObject = stream;
+                })
+                .catch((error) => {
+                    console.error('Error accessing camera:', error);
+                });
+
+<!--            // Capture button click event-->
+            captureButton.addEventListener('click', () => {
+            alert("capturing")
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = canvas.toDataURL('image/png');
+                alert(imageData)
+              //Send the captured image to the server
+                fetch('{% url "capture_image" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `image_data=${encodeURIComponent(imageData)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                       alert("image captured");
+                        statusMessage.innerHTML = `Image saved successfully: ${data.message}`;
+                    } else {
+                    alert("image not captured")
+                        statusMessage.innerHTML = `Error saving image: ${data.message}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving image:', error);
+                    statusMessage.innerHTML = 'Exception thrown while saving image. Please try again.';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

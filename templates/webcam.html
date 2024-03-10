@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Feed</title>
+</head>
+<body>
+    <h1>Webcam Feed</h1>
+    <video id="videoElement" width="640" height="480" autoplay></video>
+    <button id="captureButton">Capture Image</button>
+    <canvas id="canvasElement" style="display: none;"></canvas>
+    <script>
+        var video = document.getElementById('videoElement');
+        var canvas = document.getElementById('canvasElement');
+        var captureButton = document.getElementById('captureButton');
+
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (error) {
+                    console.error('Error accessing the webcam:', error);
+                });
+        } else {
+            console.error('getUserMedia not supported on your browser');
+        }
+
+        captureButton.addEventListener('click', function() {
+            var context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            var imageData = canvas.toDataURL('image/jpeg');
+
+            // Send captured image data to server
+            fetch('{% url "capture_image" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') // Ensure CSRF token is included
+                },
+                body: JSON.stringify({ image_data: imageData })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Image captured and saved successfully.');
+                } else {
+                    console.error('Failed to save image.');
+                }
+            })
+            .catch(error => {
+                console.error('Error capturing and saving image:', error);
+            });
+        });
+
+        // Function to retrieve CSRF token from cookies
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

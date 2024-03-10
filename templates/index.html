@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    {% extends 'base.html' %}
+
+  {% load django_bootstrap5 %}
+  {% bootstrap_css %}
+  {% bootstrap_javascript %}
+
+    {% block title %}Home{% endblock %}
+
+    {% block content %}
+        <h1>Welcome to the Home Page</h1>
+    {% endblock %}
+    <p>{{ p }}</p>
+</head>
+<body>
+
+</body>
+</html>
